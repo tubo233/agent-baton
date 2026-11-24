@@ -78,6 +78,7 @@
   - 纯文本输出在没有终端时会丢，模板已固定用 JSON 输出。
   - `--print-timeout` 要带单位（`60s`），`0` 表示不限时。
   - "backend returned an empty conversation id"：有时连着出现好几次，隔 20 秒左右再试，通常就好了。真正的额度用尽会明说 "Individual quota reached … Resets in …"。
+  - **登录过期**：stderr 写着 "Authentication required. Please visit the URL to log in"，等 60 秒后报 "authentication failed or timed out" 退出。无人值守时没法完成，请用户在终端运行一次 `agy`，在浏览器里授权、把授权码粘回终端，然后再重派。授权码由用户自己粘贴，中控不要代填。
   - 不要用 `--dangerously-skip-permissions`。
   - **"全文笔记"可能名不副实。**阅读任务的报告必须有"读过哪些页"一栏，并核对文件名和题目是否对应。
 - **额度按周计**，官方不公布具体数字。额度紧时，阅读类工作改派其他长上下文模型。

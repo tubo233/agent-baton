@@ -311,7 +311,8 @@ def job_row(job: Path) -> dict:
     hint = st.get("hint", "")
     if state not in ("done",) and not hint and meta:
         try:
-            hint = classify(job, find_agent(load_catalog(), meta["agent"]), meta)
+            # 运行中的任务只查"命令被拒"：日志里常带着执行方读过的文件内容，按失败关键词去猜会误报。
+            hint = classify(job, find_agent(load_catalog(), meta["agent"]), meta, failed=(state != "running"))
         except SystemExit:
             pass
     return {"job": job.name, "agent": meta.get("agent", "?"), "model": meta.get("model", "?"), "state": state,

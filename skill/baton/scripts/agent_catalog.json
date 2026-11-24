@@ -302,7 +302,9 @@
         ],
         "auth": [
           "not signed in",
-          "login"
+          "login",
+          "Authentication required",
+          "authentication failed"
         ],
         "denied": [
           "headless mode cannot prompt",
