@@ -18,8 +18,8 @@
 需要 Python 3.9+。
 
 ```sh
-git clone <本仓库地址> baton
-cd baton
+git clone https://github.com/tubo233/agent-baton.git
+cd agent-baton
 python install.py --dry-run      # 先看会装到哪些代理
 python install.py                # 装到检测到的所有代理
 ```
