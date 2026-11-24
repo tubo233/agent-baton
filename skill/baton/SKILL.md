@@ -64,7 +64,7 @@ python <skill>/scripts/scan_agents.py --host <你自己的 id：claude / codex /
 
 ## 第二步：查榜单
 
-- **能跳过的情况：**缓存不超过 14 天，并且本机没有缓存里缺的模型。这时直接用缓存，在方案里写明日期。
+- **能跳过的情况：**缓存不超过 7 天，并且本机没有缓存里缺的模型。这时直接用缓存，在方案里写明日期。
 - **其余情况：**按 [references/leaderboards.md](references/leaderboards.md) 查。
   - 用你自己的联网搜索；
   - 你不能联网，就把"查榜单"列进分工方案，交给能联网的代理，或请用户同意先用缓存；

@@ -5,7 +5,7 @@
 一个 skill，装到 Claude Code、Codex、Antigravity、Grok Build 等代理里都能用。在哪个代理里调用它，那个会话就是**中控**：
 
 1. **扫描本机。**看装了哪些代理（Claude Code、Codex、Antigravity/Gemini、Grok Build、Qwen Code、OpenCode、Gemini CLI），以及各自能用哪些模型。
-2. **查榜单。**查公开榜单（默认 Artificial Analysis），按工种比较这些模型。结果缓存 14 天。
+2. **查榜单。**查公开榜单（默认 Artificial Analysis），按工种比较这些模型。结果缓存 7 天。
 3. **出方案。**按工种拆分任务，写出分工方案：谁做、为什么选它、备选是谁、怎么验收、有哪些下载、哪些事要你决定。
 4. **等你点头。**你确认之后才建任务文件夹、派活。
 5. **派活和跟进。**用脚本启动各代理的无头进程，记录状态，失败时按原因换备选或重试。
