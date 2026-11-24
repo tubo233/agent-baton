@@ -1,0 +1,6 @@
+interface:
+  display_name: "Baton"
+  short_description: "多代理分工：扫描本机代理和模型，查榜单，出方案，确认后派活并验收"
+  default_prompt: "Use $baton to split this task across the coding agents on this machine."
+policy:
+  allow_implicit_invocation: false

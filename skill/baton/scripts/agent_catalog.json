@@ -1,0 +1,665 @@
+{
+  "schema": 1,
+  "note": "已知编码/通用代理的发现方式与无头启动模板。status: verified = 在作者机器上真实跑通过；docs = 只按官方文档写，首次使用前先做一次小试。占位符：{exe} {model} {effort} {job} {workdir} {prompt_file} {last_message}。",
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude Code",
+      "vendor": "anthropic",
+      "executables": [
+        "claude"
+      ],
+      "env_hints": [
+        "CLAUDE_CODE_EXECPATH"
+      ],
+      "known_locations": {
+        "win32": [
+          "~/.local/bin/claude.exe",
+          "~/.claude/local/claude.exe",
+          "%APPDATA%/npm/claude.cmd",
+          "%LOCALAPPDATA%/Claude-Data/*/claude-code/*/*/claude.exe"
+        ],
+        "darwin": [
+          "~/.local/bin/claude",
+          "~/.claude/local/claude",
+          "/usr/local/bin/claude",
+          "/opt/homebrew/bin/claude"
+        ],
+        "linux": [
+          "~/.local/bin/claude",
+          "~/.claude/local/claude",
+          "/usr/local/bin/claude"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "static",
+        "static": [
+          "fable",
+          "opus",
+          "sonnet",
+          "haiku"
+        ],
+        "note": "Claude Code 用 --model 接受别名或完整模型 ID；没有列模型的命令。"
+      },
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "skill_dirs": [
+        "~/.claude/skills"
+      ],
+      "headless": {
+        "status": "docs",
+        "prompt_via": "stdin",
+        "args": [
+          "-p",
+          "--model",
+          "{model}",
+          "--output-format",
+          "stream-json",
+          "--verbose",
+          "--add-dir",
+          "{job}"
+        ],
+        "effort_args": [
+          "--effort",
+          "{effort}"
+        ],
+        "access": {
+          "job": [
+            "--permission-mode",
+            "acceptEdits"
+          ],
+          "workspace": [
+            "--permission-mode",
+            "acceptEdits",
+            "--add-dir",
+            "{workdir}"
+          ]
+        },
+        "cwd": "job",
+        "log": "运行日志.jsonl",
+        "add_dir_flag": "--add-dir"
+      },
+      "subagents": "宿主是 Claude Code 时，优先用自带的子代理（Agent 工具，model 选 sonnet/haiku/opus），不必另起 claude 进程。",
+      "failure_patterns": {
+        "quota": [
+          "usage limit reached",
+          "rate limit reached",
+          "Credit balance is too low",
+          "overloaded_error"
+        ],
+        "auth": [
+          "Not logged in",
+          "Invalid API key",
+          "Please run /login"
+        ]
+      },
+      "notes": "无头模式下没有人批准权限：acceptEdits 只放行改文件；要跑命令须另加 --allowedTools，例如 \"Bash(python:*)\"。 本机实测（2026-11-24）：参数被接受，但 Claude 桌面版自带的命令行没有单独登录，报 Not logged in；要让别的中控调用它，用户需先在终端运行一次 claude 登录。"
+    },
+    {
+      "id": "codex",
+      "name": "Codex CLI",
+      "vendor": "openai",
+      "executables": [
+        "codex"
+      ],
+      "env_hints": [],
+      "known_locations": {
+        "win32": [
+          "%APPDATA%/npm/codex.cmd",
+          "%LOCALAPPDATA%/pnpm/codex.cmd",
+          "~/.bun/bin/codex.exe",
+          "~/scoop/shims/codex.exe"
+        ],
+        "darwin": [
+          "/usr/local/bin/codex",
+          "/opt/homebrew/bin/codex",
+          "~/.local/bin/codex"
+        ],
+        "linux": [
+          "/usr/local/bin/codex",
+          "~/.local/bin/codex"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "codex_cache",
+        "cache_file": "~/.codex/models_cache.json",
+        "note": "读 ~/.codex/models_cache.json 里 visibility=list 的条目（含各模型支持的思考档位）。接第三方中转时，以中转实际支持的为准。"
+      },
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "skill_dirs": [
+        "~/.agents/skills",
+        "~/.codex/skills"
+      ],
+      "headless": {
+        "status": "verified",
+        "prompt_via": "stdin",
+        "args": [
+          "exec",
+          "-m",
+          "{model}",
+          "--skip-git-repo-check",
+          "--add-dir",
+          "{job}",
+          "-o",
+          "{last_message}"
+        ],
+        "effort_args": [
+          "-c",
+          "model_reasoning_effort={effort}"
+        ],
+        "access": {
+          "job": [
+            "-s",
+            "workspace-write",
+            "-C",
+            "{job}"
+          ],
+          "workspace": [
+            "-s",
+            "workspace-write",
+            "-C",
+            "{workdir}"
+          ]
+        },
+        "trailing_args": [
+          "-"
+        ],
+        "cwd": "job",
+        "log": "运行日志.txt",
+        "add_dir_flag": "--add-dir",
+        "stderr_to_log": true
+      },
+      "subagents": "宿主是 Codex 时，若开启了多代理功能，可用它自带的子代理；否则把活派给其他 CLI。",
+      "failure_patterns": {
+        "quota": [
+          "usage limit",
+          "rate limit reached",
+          "429 Too Many",
+          "insufficient_quota",
+          "quota exceeded"
+        ],
+        "auth": [
+          "401 Unauthorized",
+          "Not logged in",
+          "unauthorized"
+        ],
+        "sandbox": [
+          "Access is denied",
+          "拒绝访问",
+          "index.lock",
+          "blocked by sandbox",
+          "sandbox denied"
+        ]
+      },
+      "notes": "workspace-write 沙箱：.git 只读；工作区和 --add-dir 之外的目录可能连读都不行；默认不能联网。需要读写的目录都要 --add-dir。"
+    },
+    {
+      "id": "agy",
+      "name": "Antigravity CLI (Gemini)",
+      "vendor": "google",
+      "executables": [
+        "agy"
+      ],
+      "env_hints": [],
+      "known_locations": {
+        "win32": [
+          "%LOCALAPPDATA%/agy/bin/agy.exe",
+          "~/.gemini/antigravity/bin/agy.exe",
+          "%LOCALAPPDATA%/Programs/antigravity/resources/bin/agy.exe"
+        ],
+        "darwin": [
+          "~/.gemini/antigravity/bin/agy",
+          "/usr/local/bin/agy",
+          "/opt/homebrew/bin/agy"
+        ],
+        "linux": [
+          "~/.gemini/antigravity/bin/agy",
+          "/usr/local/bin/agy",
+          "~/.local/bin/agy"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "command",
+        "args": [
+          "models"
+        ],
+        "parse": "first_column",
+        "note": "agy models 每行：模型 ID<Tab>显示名；ID 里带思考档位，如 gemini-4-neon-high。"
+      },
+      "efforts": [],
+      "skill_dirs": [
+        "~/.gemini/config/skills"
+      ],
+      "headless": {
+        "status": "verified",
+        "prompt_via": "arg",
+        "short_prompt": {
+          "default": "请阅读当前目录下的 启动提示.md 并照做。注意：不要运行任何终端命令，只用内置的读写文件工具。",
+          "job_shell": "请阅读当前目录下的 启动提示.md 并照做。"
+        },
+        "args": [
+          "-p",
+          "{short_prompt}",
+          "--model",
+          "{model}",
+          "--print-timeout",
+          "0",
+          "--output-format",
+          "json"
+        ],
+        "effort_args": [],
+        "access": {
+          "job": [
+            "--mode",
+            "accept-edits"
+          ],
+          "workspace": [
+            "--mode",
+            "accept-edits",
+            "--add-dir",
+            "{workdir}"
+          ],
+          "job_shell": [
+            "--mode",
+            "auto"
+          ]
+        },
+        "cwd": "job",
+        "log": "运行结果.json",
+        "add_dir_flag": "--add-dir"
+      },
+      "subagents": "宿主是 Antigravity 时，可用它自带的多代理（swarm）功能；没有就派给其他 CLI。",
+      "failure_patterns": {
+        "quota": [
+          "Individual quota reached",
+          "quota",
+          "RESOURCE_EXHAUSTED",
+          "429"
+        ],
+        "transient": [
+          "empty conversation id"
+        ],
+        "auth": [
+          "not signed in",
+          "login"
+        ],
+        "denied": [
+          "headless mode cannot prompt",
+          "auto-denied"
+        ]
+      },
+      "notes": "accept-edits 下无人值守时终端命令会被自动拒绝，运行会空跑结束：要么提示里写明只用文件工具，要么用户同意后用 --mode auto。--print-timeout 要带单位（60s），0 为不限时。纯文本输出在没有终端时会丢，一律用 --output-format json。每次调用约 12k token 固定开销。"
+    },
+    {
+      "id": "grok",
+      "name": "Grok Build",
+      "vendor": "xai",
+      "executables": [
+        "grok"
+      ],
+      "env_hints": [],
+      "known_locations": {
+        "win32": [
+          "~/.grok/bin/grok.exe",
+          "%APPDATA%/npm/grok.cmd"
+        ],
+        "darwin": [
+          "~/.grok/bin/grok",
+          "/usr/local/bin/grok",
+          "/opt/homebrew/bin/grok"
+        ],
+        "linux": [
+          "~/.grok/bin/grok",
+          "/usr/local/bin/grok",
+          "~/.local/bin/grok"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "command",
+        "args": [
+          "models"
+        ],
+        "parse": "grok_list",
+        "note": "grok models 列出可用模型并显示登录状态。"
+      },
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "skill_dirs": [
+        "~/.grok/skills",
+        "~/.agents/skills",
+        "~/.claude/skills"
+      ],
+      "headless": {
+        "status": "verified",
+        "prompt_via": "file",
+        "args": [
+          "--prompt-file",
+          "{prompt_file}",
+          "-m",
+          "{model}",
+          "--always-approve",
+          "--no-plan",
+          "--max-turns",
+          "400",
+          "--output-format",
+          "streaming-json"
+        ],
+        "effort_args": [
+          "--effort",
+          "{effort}"
+        ],
+        "access": {
+          "job": [],
+          "workspace": []
+        },
+        "offline_args": [
+          "--disable-web-search"
+        ],
+        "cwd": "job",
+        "log": "运行日志.jsonl"
+      },
+      "subagents": "宿主是 Grok Build 时，可用它自带的子代理和后台任务。",
+      "failure_patterns": {
+        "quota": [
+          "usage balance exhausted",
+          "402",
+          "429",
+          "rate limit"
+        ],
+        "auth": [
+          "not authenticated"
+        ]
+      },
+      "notes": "Windows 上 --sandbox 不生效，只能靠 --deny 规则和任务书约束。它会加载用户配置的 MCP（可能含带登录状态的浏览器），用 --disallowed-tools / --deny \"MCPTool\" 关掉。日志第一行 available_commands 可核对实际可用的工具。"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "vendor": "google",
+      "executables": [
+        "gemini"
+      ],
+      "env_hints": [],
+      "known_locations": {
+        "win32": [
+          "%APPDATA%/npm/gemini.cmd",
+          "%LOCALAPPDATA%/pnpm/gemini.cmd"
+        ],
+        "darwin": [
+          "/usr/local/bin/gemini",
+          "/opt/homebrew/bin/gemini"
+        ],
+        "linux": [
+          "/usr/local/bin/gemini",
+          "~/.local/bin/gemini"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "none",
+        "note": "没有列模型的命令；用 -m 指定，见官方文档。"
+      },
+      "efforts": [],
+      "skill_dirs": [
+        "~/.gemini/skills"
+      ],
+      "headless": {
+        "status": "docs",
+        "prompt_via": "stdin",
+        "args": [
+          "-p",
+          "",
+          "-m",
+          "{model}",
+          "--output-format",
+          "json"
+        ],
+        "effort_args": [],
+        "access": {
+          "job": [
+            "--approval-mode",
+            "auto_edit"
+          ],
+          "workspace": [
+            "--approval-mode",
+            "auto_edit",
+            "--include-directories",
+            "{workdir}"
+          ]
+        },
+        "cwd": "job",
+        "log": "运行结果.json",
+        "add_dir_flag": "--include-directories"
+      },
+      "failure_patterns": {
+        "quota": [
+          "quota",
+          "RESOURCE_EXHAUSTED",
+          "429"
+        ]
+      },
+      "notes": "未实测。"
+    },
+    {
+      "id": "qwen",
+      "name": "Qwen Code",
+      "vendor": "alibaba",
+      "executables": [
+        "qwen"
+      ],
+      "env_hints": [],
+      "known_locations": {
+        "win32": [
+          "~/.qwen/bin/qwen/qwen.exe",
+          "~/.qwen/bin/qwen.exe",
+          "%APPDATA%/npm/qwen.cmd"
+        ],
+        "darwin": [
+          "~/.qwen/bin/qwen",
+          "/usr/local/bin/qwen",
+          "/opt/homebrew/bin/qwen"
+        ],
+        "linux": [
+          "~/.qwen/bin/qwen",
+          "/usr/local/bin/qwen"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "command",
+        "args": [
+          "--list-models"
+        ],
+        "parse": "qwen_list"
+      },
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "skill_dirs": [
+        "~/.qwen/skills"
+      ],
+      "headless": {
+        "status": "docs",
+        "prompt_via": "stdin",
+        "args": [
+          "-p",
+          "",
+          "-o",
+          "stream-json",
+          "--model",
+          "{model}"
+        ],
+        "effort_args": [
+          "--reasoning-effort",
+          "{effort}"
+        ],
+        "access": {
+          "job": [
+            "--permission-mode",
+            "accept_edits"
+          ],
+          "workspace": [
+            "--permission-mode",
+            "accept_edits",
+            "--include-directories",
+            "{workdir}"
+          ]
+        },
+        "cwd": "job",
+        "log": "运行日志.jsonl",
+        "add_dir_flag": "--include-directories"
+      },
+      "failure_patterns": {
+        "quota": [
+          "balance is low",
+          "credits have been used up",
+          "429",
+          "quota"
+        ]
+      },
+      "notes": "未实测成功回合。"
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "vendor": "multi",
+      "executables": [
+        "opencode"
+      ],
+      "env_hints": [],
+      "known_locations": {
+        "win32": [
+          "%APPDATA%/npm/opencode.cmd",
+          "~/.opencode/bin/opencode.exe"
+        ],
+        "darwin": [
+          "/usr/local/bin/opencode",
+          "/opt/homebrew/bin/opencode",
+          "~/.opencode/bin/opencode"
+        ],
+        "linux": [
+          "/usr/local/bin/opencode",
+          "~/.opencode/bin/opencode"
+        ]
+      },
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "command",
+        "args": [
+          "models"
+        ],
+        "parse": "first_column"
+      },
+      "efforts": [],
+      "skill_dirs": [
+        "~/.config/opencode/skills"
+      ],
+      "headless": {
+        "status": "docs",
+        "prompt_via": "arg",
+        "args": [
+          "run",
+          "-m",
+          "{model}",
+          "--format",
+          "json",
+          "{short_prompt}"
+        ],
+        "effort_args": [],
+        "access": {
+          "job": [],
+          "workspace": []
+        },
+        "cwd": "job",
+        "log": "运行日志.jsonl"
+      },
+      "failure_patterns": {
+        "quota": [
+          "quota",
+          "429",
+          "rate limit"
+        ]
+      },
+      "notes": "未实测；模型 ID 形如 provider/model，额度按模型所属供应商算。"
+    },
+    {
+      "id": "selftest",
+      "name": "自测（不调用任何模型）",
+      "vendor": "none",
+      "kind": "test",
+      "executables": [
+        "python3",
+        "python",
+        "py"
+      ],
+      "env_hints": [],
+      "known_locations": {},
+      "version_args": [
+        "--version"
+      ],
+      "models": {
+        "method": "static",
+        "static": [
+          "5"
+        ],
+        "note": "模型参数填秒数"
+      },
+      "efforts": [],
+      "skill_dirs": [],
+      "headless": {
+        "status": "verified",
+        "prompt_via": "stdin",
+        "args": [
+          "-c",
+          "import sys,time; sys.stdin.read(); time.sleep(float(sys.argv[1])); open('结果.txt','w',encoding='utf-8').write('OK selftest'); print('selftest done')",
+          "{model}"
+        ],
+        "effort_args": [],
+        "access": {
+          "job": []
+        },
+        "cwd": "job",
+        "log": "运行日志.txt"
+      },
+      "failure_patterns": {},
+      "notes": "用来检查 dispatch.py 的启动、等待、停止是否正常，不花任何额度：dispatch.py run --agent selftest --model 5"
+    }
+  ]
+}

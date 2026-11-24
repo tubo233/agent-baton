@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+# 个人配置和本机状态不进仓库
+skill/baton/local/本机配置.md
+skill/baton/local/profile.json
+leaderboard.json
+inventory.json
+inventory.md
+history.csv

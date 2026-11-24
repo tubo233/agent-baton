@@ -1,0 +1,23 @@
+{
+  "job_root": "~/baton-jobs",
+  "state_dir": "~/.baton",
+  "forbidden_dirs": [
+    {"path": "~/private-data", "tree": true}
+  ],
+  "agents": {
+    "grok": {
+      "extra_args": [
+        "--disallowed-tools", "CallMcpTool,FetchMcpResource,ListMcpResources",
+        "--deny", "MCPTool",
+        "--deny", "Read(C:/Users/you/private-data/**)"
+      ]
+    },
+    "agy": {
+      "forbidden_dirs": [{"path": "~", "tree": false}]
+    },
+    "qwen": {
+      "disabled": true,
+      "notes": "还没登录"
+    }
+  }
+}
